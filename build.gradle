@@ -1,0 +1,26 @@
+buildscript {
+    repositories {
+        mavenLocal()
+        gradlePluginPortal()
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath 'gradle.plugin.com.github.b3er.local.properties:local-properties-plugin:1.1'
+    }
+}
+
+group = 'com.rdolejsi.agon.utils'
+
+apply plugin: 'com.github.b3er.local.properties'
+
+task clean {
+}
+
+subprojects {
+    apply plugin: 'idea'
+    apply plugin: 'eclipse'
+
+    task clean {
+    }
+}

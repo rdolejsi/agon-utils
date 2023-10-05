@@ -1,5 +1,25 @@
+# Ignore Gradle project-specific and make-generated files
+.gradle*
+local.properties
+**/build/
+!gradle/wrapper/gradle-wrapper.jar
+**/dist/
+**/obj/
 *.o
+*.#*
 *~
+
+# Log files
+*.log
+
+### IntelliJ IDEA and Microsoft VSCode ###
 .idea
-obj
-dist
+*.iws
+*.iml
+*.ipr
+/out/
+.vscode
+
+# Ignore patch-generated files
+*.rej
+*.orig

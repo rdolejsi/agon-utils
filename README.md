@@ -11,6 +11,7 @@
 **Additional local docs**
 
 - [Agon Light Compilation Toolset](docs/toolset)
+- [Typical development tasks](docs/development)
 
 ---
 
