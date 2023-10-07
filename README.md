@@ -7,6 +7,8 @@
 - [Repository structure](#repository-structure)
 - [Hardware](#hardware)
 - [Utilities](#utilities)
+    - [vmode](#vmode)
+        - [vmode command line](#vmode-command-line)
 
 **Additional local docs**
 
@@ -64,3 +66,48 @@ To run overall build, please use:
 ```
 
 The resulting tools will be available in `build/dist/` directory.
+
+## vmode
+
+Lists video modes, gets current video mode details and switches VDP video mode
+to the desired one. The utility also describes the mode afterward (as a top line).
+
+The utility unfortunately hangs when run off `mos/` directory for unknown reasons
+for now. It has to be executed by standard load/run sequence for now, investigation
+will follow. The command line parameter syntax described below thus needs to be
+altered like this:
+
+```
+load vmode.bin
+run &040000 ...parameters...
+```
+
+### vmode command line
+
+Listing the video modes (VDP 1.04+ assumed):
+
+```
+vmode list
+```
+
+Getting the video mode:
+
+```
+vmode get
+```
+
+Setting the video mode:
+
+```
+vmode <number>
+vmode set <number>
+```
+
+Any command can be abbreviated by just its first character as well. Set command
+can be issued without the command itself, just by specifying the video mode number.
+
+_Please note: Video modes of Agon Light changed drastically between VDP 1.03 and 1.04,
+see [here](https://github.com/breakintoprogram/agon-docs/wiki/VDP#screen-modes).
+The utility supports assumes 1.04 mode table when reporting the mode at the top
+of the screen, but will work fine on 1.03 and below versions of course (barring the
+incorrect info given)._
