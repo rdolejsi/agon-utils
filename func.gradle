@@ -1,0 +1,125 @@
+// method exposure as a closure (to make them accessible in submodules)
+ext {
+    getPropertyOrEnv = this.&getPropertyOrEnv
+    requirePropertyOrEnv = this.&requirePropertyOrEnv
+    fileExists = this.&fileExists
+    assertFileExists = this.&assertFileExists
+    pathRelativeTo = this.&pathRelativeTo
+    pathInProject = this.&pathInProject
+    readFile = this.&readFile
+    downloadFile = this.&downloadFile
+    commandExists = this.&commandExists
+    execLogged = this.&execLogged
+    exec = this.&exec
+}
+
+def getPropertyOrEnv(name1, name2) {
+    def v = System.getProperty(name1)
+    if (v == null) {
+        v = System.getenv(name1)
+    }
+    if (v == null) {
+        v = System.getProperty(name2)
+    }
+    if (v == null) {
+        v = System.getenv(name2)
+    }
+    return v
+}
+
+def requirePropertyOrEnv(name1, name2) {
+    def v = getPropertyOrEnv(name1, name2)
+    if (v == null) {
+        throw new GradleException("System property or environment variable '$name1' or '$name2' needs to be present")
+    }
+    return v
+}
+
+def fileExists(file) {
+    if (!(file instanceof File)) {
+        file = new File(file)
+    }
+    return file.exists()
+}
+
+def assertFileExists(file) {
+    if (!file.exists()) {
+        throw new GradleException("File $file does not exist")
+    }
+}
+
+def pathRelativeTo(baseDir, file) {
+    if (!(baseDir instanceof File)) {
+        baseDir = new File(baseDir.toString())
+    }
+    if (!(file instanceof File)) {
+        file = new File(file.toString())
+    }
+    return file.getPath().replaceFirst(baseDir.getPath() + '/', '')
+}
+
+def pathInProject(file) {
+    return pathRelativeTo(project.rootDir, file)
+}
+
+def readFile(dir, fileName) {
+    File file = new File(dir, fileName)
+    if (file.exists()) {
+        return file.text.trim()
+    } else {
+        throw new GradleException('File ' + file + ' does not exist, cannot read its content')
+    }
+}
+
+def downloadFile(String url, String filename) {
+    while (url) {
+        new URL(url).openConnection().with { conn ->
+            conn.instanceFollowRedirects = false
+            url = conn.getHeaderField("Location")
+            if (!url) {
+                new File(filename).withOutputStream { out ->
+                    conn.inputStream.with { inp ->
+                        out << inp
+                        inp.close()
+                    }
+                }
+            }
+        }
+    }
+}
+
+def commandExists(dir, command) {
+    def commandPath = exec(
+        dir, ['sh', '-c', 'which ' + command + ' | cat' ]
+    )
+    return !commandPath.isEmpty()
+}
+
+def execLogged(dir, command) {
+    exec {
+        workingDir = dir
+        commandLine = command
+    }
+}
+
+def exec(dir, command) {
+    new ByteArrayOutputStream().withStream { stdOS ->
+        new ByteArrayOutputStream().withStream { errOS ->
+            def result = exec {
+                workingDir = dir
+                commandLine = command
+                standardOutput = stdOS
+                errorOutput = errOS
+                ignoreExitValue = true
+            }
+            if (result.getExitValue() != 0) {
+                def errorOutput = errOS.toString()
+                if (!errorOutput.trim().isEmpty()) {
+                    logger.error(errorOutput.trim())
+                }
+                throw new GradleException('Command ' + command + ' failed with error code ' + result.getExitValue())
+            }
+            return stdOS.toString().trim()
+        }
+    }
+}

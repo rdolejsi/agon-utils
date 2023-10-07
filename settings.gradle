@@ -1,1 +1,3 @@
 rootProject.name = 'agon-utils'
+
+include ':vmode'

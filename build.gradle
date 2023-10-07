@@ -13,14 +13,53 @@ buildscript {
 group = 'com.rdolejsi.agon.utils'
 
 apply plugin: 'com.github.b3er.local.properties'
-
-task clean {
-}
+apply from: rootProject.file('func.gradle')
 
 subprojects {
     apply plugin: 'idea'
     apply plugin: 'eclipse'
+    apply from: rootProject.file('func.gradle')
 
     task clean {
+        doLast {
+            execLogged(projectDir, ["make", "clean"])
+        }
     }
+
+    task build {
+        doLast {
+            execLogged(projectDir, ["make"])
+        }
+    }
+}
+
+task clean {
+    doLast {
+        if (buildDir.exists()) {
+            project.delete(buildDir)
+        }
+    }
+}
+
+task copyToBuild(type: Copy) {
+    into "${buildDir}"
+    eachFile { file ->
+        def source = pathInProject(file.file)
+        def destination = pathInProject(new File("${buildDir}/${file.file.name}"))
+        logger.lifecycle("Copying ${source} -> ${destination}")
+    }
+}
+
+task build {
+    dependsOn subprojects.build
+    doFirst {
+        mkdir buildDir
+        subprojects.each { project ->
+            File distDir = file("${project.projectDir}/dist")
+            copyToBuild.with(copySpec {
+                from(distDir)
+            })
+        }
+    }
+    finalizedBy copyToBuild
 }
